@@ -9,8 +9,20 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn solve_problem(_input: &str) -> Result<usize> {
-    Ok(0)
+fn solve_problem(input: &str) -> Result<u32> {
+    let mut result: u32 = 0;
+    for line in input.trim().split('\n') {
+        let mut numbers = Vec::<u32>::new();
+        for char in line.chars() {
+            if let Some(digit) = char.to_digit(10) {
+                numbers.push(digit);
+            }
+        }
+        let first = numbers.first().context("No first number")?;
+        let last = numbers.last().context("No last number")?;
+        result += first * 10 + last;
+    }
+    Ok(result)
 }
 
 #[cfg(test)]
@@ -24,6 +36,6 @@ mod tests {
         let input = read_to_string("./example.txt").unwrap();
 
         let result = solve_problem(&input).unwrap();
-        assert_eq!(result, 0);
+        assert_eq!(result, 142);
     }
 }
