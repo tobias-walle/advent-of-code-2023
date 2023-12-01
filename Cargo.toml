@@ -1,11 +1,12 @@
 [workspace]
 members = ["*/"]
-exclude = ["target"]
+exclude = ["target", ".git"]
 resolver = "2"
 
 [workspace.dependencies]
 anyhow = "1"
 regex = "1"
+fancy-regex = "0.12"
 pretty_assertions = "1.4"
 nom = "7"
 colored = "2"

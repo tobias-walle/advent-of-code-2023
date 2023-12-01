@@ -8,4 +8,5 @@ utils = { path = "../utils" }
 anyhow = { workspace = true }
 pretty_assertions = { workspace = true }
 colored = { workspace = true }
+fancy-regex = { workspace = true }
 nom = { workspace = true }
