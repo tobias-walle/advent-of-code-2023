@@ -13,9 +13,9 @@ pub fn number<T: FromStr>(input: &str) -> IResult<&str, T> {
     map_res(recognize(tuple((opt(tag("-")), digit1))), T::from_str)(input)
 }
 
-pub fn parse_with_nom<P, T>(input: &str, parse: P) -> Result<T>
+pub fn parse_with_nom<'a, 'b, P, T>(input: &'a str, parse: P) -> Result<T>
 where
-    P: FnOnce(&str) -> IResult<&str, T>,
+    P: FnOnce(&'a str) -> IResult<&'b str, T>,
     T: Debug,
 {
     let (_, parsed) = match parse(input) {
