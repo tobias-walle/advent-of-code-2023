@@ -15,6 +15,14 @@ fn main() -> Result<()> {
 fn solve_problem(input: &str) -> Result<u32> {
     let grid: Grid = input.parse().unwrap();
     let mut sum = 0;
+    let mut add_to_sum_if_needed = |digit_has_symbol_as_neighbour: &mut bool,
+                                    combined_digit: &mut u32| {
+        if *digit_has_symbol_as_neighbour {
+            sum += *combined_digit;
+        }
+        *combined_digit = 0;
+        *digit_has_symbol_as_neighbour = false;
+    };
     for (row, line) in grid.lines.iter().enumerate() {
         let mut combined_digit = 0;
         let mut digit_has_symbol_as_neighbour = false;
@@ -27,16 +35,10 @@ fn solve_problem(input: &str) -> Result<u32> {
                     .neighbours(coord)
                     .any(|c| c != '.' && !c.is_ascii_digit());
             } else {
-                if digit_has_symbol_as_neighbour {
-                    sum += combined_digit;
-                }
-                combined_digit = 0;
-                digit_has_symbol_as_neighbour = false;
+                add_to_sum_if_needed(&mut digit_has_symbol_as_neighbour, &mut combined_digit)
             }
         }
-        if digit_has_symbol_as_neighbour {
-            sum += combined_digit;
-        }
+        add_to_sum_if_needed(&mut digit_has_symbol_as_neighbour, &mut combined_digit)
     }
     Ok(sum)
 }
