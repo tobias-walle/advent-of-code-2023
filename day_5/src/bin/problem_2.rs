@@ -1,3 +1,5 @@
+use std::ops::Range;
+
 use anyhow::{Context, Result};
 use nom::{
     bytes::complete::{tag, take_until},
@@ -6,6 +8,7 @@ use nom::{
     multi::separated_list1,
     sequence::{preceded, tuple},
 };
+use rayon::prelude::*;
 use utils::{
     parsing::{self, parse_with_nom},
     read_input_file_as_string,
@@ -22,10 +25,11 @@ fn main() -> Result<()> {
 fn solve_problem(input: &str) -> Result<usize> {
     let problem = parse(input)?;
     let result = problem
-        .starting_seeds
-        .iter()
+        .starting_seed_ranges
+        .par_iter()
+        .flat_map(|r| r.clone())
         .map(|seed| {
-            let soil = problem.seed_to_soil_map.get_destination(seed);
+            let soil = problem.seed_to_soil_map.get_destination(&seed);
             let fertilizer = problem.soil_to_fertilizer_map.get_destination(&soil);
             let water = problem.fertilizer_to_water_map.get_destination(&fertilizer);
             let light = problem.water_to_light_map.get_destination(&water);
@@ -43,7 +47,7 @@ fn solve_problem(input: &str) -> Result<usize> {
 
 #[derive(Debug, Clone)]
 pub struct Problem {
-    pub starting_seeds: Vec<usize>,
+    pub starting_seed_ranges: Vec<Range<usize>>,
     pub seed_to_soil_map: Map,
     pub soil_to_fertilizer_map: Map,
     pub fertilizer_to_water_map: Map,
@@ -67,15 +71,6 @@ impl Map {
         }
         *source
     }
-
-    pub fn get_source(&self, destination: &usize) -> usize {
-        for range in &self.ranges {
-            if let Some(result) = range.get_source(destination) {
-                return result;
-            }
-        }
-        *destination
-    }
 }
 
 #[derive(Debug, Clone)]
@@ -87,30 +82,29 @@ pub struct MapRange {
 
 impl MapRange {
     pub fn get_destination(&self, source: &usize) -> Option<usize> {
-        let source_range = self.source_range_start..(self.source_range_start + self.range_length);
-        if source_range.contains(source) {
+        if self.source_range().contains(source) {
             let offset = source - self.source_range_start;
             Some(self.destination_range_start + offset)
         } else {
             None
         }
     }
-    pub fn get_source(&self, destination: &usize) -> Option<usize> {
-        let destination_range =
-            self.destination_range_start..(self.destination_range_start + self.range_length);
-        if destination_range.contains(destination) {
-            let offset = destination - self.destination_range_start;
-            Some(self.source_range_start + offset)
-        } else {
-            None
-        }
+
+    pub fn source_range(&self) -> Range<usize> {
+        self.source_range_start..(self.source_range_start + self.range_length)
     }
 }
 
 fn parse(input: &str) -> Result<Problem> {
-    let parse_seeds = preceded(
+    let parse_seed_seed_ranges = preceded(
         tuple((tag("seeds:"), space0)),
-        separated_list1(space1, parsing::number),
+        separated_list1(
+            space1,
+            map(
+                tuple((parsing::number, space1, parsing::number)),
+                |(start, _, length): (usize, _, usize)| start..(start + length),
+            ),
+        ),
     );
     let parse_map_range = map(
         tuple((
@@ -132,9 +126,12 @@ fn parse(input: &str) -> Result<Problem> {
         |ranges| Map { ranges },
     );
     let parse_problem = map(
-        tuple((parse_seeds, separated_list1(multispace1, parse_map))),
-        |(starting_seeds, maps)| Problem {
-            starting_seeds,
+        tuple((
+            parse_seed_seed_ranges,
+            separated_list1(multispace1, parse_map),
+        )),
+        |(starting_seed_ranges, maps)| Problem {
+            starting_seed_ranges,
             seed_to_soil_map: maps[0].clone(),
             soil_to_fertilizer_map: maps[1].clone(),
             fertilizer_to_water_map: maps[2].clone(),
