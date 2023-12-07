@@ -51,17 +51,14 @@ struct Hand {
 
 impl Ord for Hand {
     fn cmp(&self, other: &Self) -> Ordering {
-        match self.hand_type.cmp(&other.hand_type) {
-            Ordering::Equal => (),
-            result => return result,
-        };
-        for i in 0..5 {
-            match self.cards[i].cmp(&other.cards[i]) {
-                Ordering::Equal => (),
-                result => return result,
-            };
-        }
-        Ordering::Equal
+        self.hand_type.cmp(&other.hand_type).then_with(|| {
+            self.cards
+                .iter()
+                .zip(other.cards.iter())
+                .map(|(a, b)| a.cmp(b))
+                .find(|o| !o.is_eq())
+                .unwrap_or(Ordering::Equal)
+        })
     }
 }
 
