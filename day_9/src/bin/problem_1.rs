@@ -9,8 +9,45 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn solve_problem(_input: &str) -> Result<usize> {
-    Ok(0)
+fn solve_problem(input: &str) -> Result<i64> {
+    let histories = parse(input);
+    let result = histories
+        .iter()
+        .map(|h| compute_result_for_history(h))
+        .sum();
+    Ok(result)
+}
+
+fn compute_result_for_history(history: &[i64]) -> i64 {
+    let mut steps = vec![history.to_vec()];
+    loop {
+        let last = steps.last().unwrap();
+        let pairs = last.iter().zip(last.iter().skip(1));
+        let step: Vec<_> = pairs.map(|(a, b)| b - a).collect();
+        let all_zeros = step.iter().all(|n| *n == 0);
+        steps.push(step);
+        if all_zeros {
+            break;
+        }
+    }
+    let result = steps
+        .iter()
+        .rev()
+        .fold(0, |result, step| result + step.last().unwrap());
+    result
+}
+
+fn parse(input: &str) -> Vec<Vec<i64>> {
+    input
+        .trim()
+        .split('\n')
+        .map(|line| {
+            line.trim()
+                .split(' ')
+                .map(|n| n.parse().expect("Invalid number"))
+                .collect()
+        })
+        .collect()
 }
 
 #[cfg(test)]
@@ -24,6 +61,6 @@ mod tests {
         let input = read_to_string("./example.txt").unwrap();
 
         let result = solve_problem(&input).unwrap();
-        assert_eq!(result, 0);
+        assert_eq!(result, 114);
     }
 }
