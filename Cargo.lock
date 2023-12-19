@@ -118,6 +118,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "day_10"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "colored",
+ "nom",
+ "pretty_assertions",
+ "utils",
+]
+
+[[package]]
+name = "day_19"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "colored",
+ "itertools",
+ "nom",
+ "pretty_assertions",
+ "utils",
+]
+
+[[package]]
 name = "day_2"
 version = "0.0.0"
 dependencies = [
