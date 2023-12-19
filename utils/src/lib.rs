@@ -6,7 +6,10 @@ use std::{
 
 use anyhow::{Context, Result};
 
+mod math;
 pub mod parsing;
+
+pub use math::*;
 
 pub type Lines = io::Lines<io::BufReader<File>>;
 

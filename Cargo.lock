@@ -193,6 +193,7 @@ dependencies = [
  "anyhow",
  "colored",
  "nom",
+ "num-traits",
  "pretty_assertions",
  "utils",
 ]
@@ -291,6 +292,15 @@ checksum = "e5507769c4919c998e69e49c839d9dc6e693ede4cc4290d6ad8b41d4f09c548c"
 dependencies = [
  "memchr",
  "minimal-lexical",
+]
+
+[[package]]
+name = "num-traits"
+version = "0.2.17"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "39e3200413f237f41ab11ad6d161bc7239c84dcb631773ccd7de3dfe4b5c267c"
+dependencies = [
+ "autocfg",
 ]
 
 [[package]]
@@ -425,6 +435,7 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "nom",
+ "num-traits",
 ]
 
 [[package]]
