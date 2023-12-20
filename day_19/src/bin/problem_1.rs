@@ -4,13 +4,15 @@ use anyhow::{Context, Result};
 use nom::{
     branch::alt,
     bytes::complete::tag,
-    character::complete::{alpha1, multispace0},
+    character::complete::alpha1,
     combinator::{all_consuming, map},
-    multi::{separated_list0, separated_list1},
-    sequence::{delimited, preceded, tuple},
+    sequence::tuple,
 };
 use utils::{
-    parsing::{self, parse_with_nom},
+    parsing::{
+        self, d_curly, l0_comma, l1_comma, l1_newline, p_column, p_comma, p_eq, p_mspace,
+        parse_with_nom,
+    },
     read_input_file_as_string,
 };
 
@@ -131,7 +133,7 @@ fn parse(input: &str) -> Result<Problem> {
                 parse_rating_name(),
                 parse_ordering(),
                 parsing::number,
-                preceded(tag(":"), parse_rule_outcome()),
+                p_column(parse_rule_outcome()),
             )),
             |(part, expected_ord, n, outcome)| WorkflowRule {
                 rating_name: part,
@@ -145,14 +147,10 @@ fn parse(input: &str) -> Result<Problem> {
         map(
             tuple((
                 parse_workflow_name(),
-                delimited(
-                    tag("{"),
-                    tuple((
-                        separated_list0(tag(","), parse_rule()),
-                        preceded(tag(","), parse_rule_outcome()),
-                    )),
-                    tag("}"),
-                ),
+                d_curly(tuple((
+                    l0_comma(parse_rule()),
+                    p_comma(parse_rule_outcome()),
+                ))),
             )),
             |(name, (rules, fallback))| Workflow {
                 name,
@@ -163,14 +161,10 @@ fn parse(input: &str) -> Result<Problem> {
     };
     let parse_part = || {
         map(
-            delimited(
-                tag("{"),
-                separated_list1(
-                    tag(","),
-                    tuple((parse_rating_name(), preceded(tag("="), parsing::number))),
-                ),
-                tag("}"),
-            ),
+            d_curly(l1_comma(tuple((
+                parse_rating_name(),
+                p_eq(parsing::number),
+            )))),
             |ratings| Part {
                 ratings: ratings.into_iter().collect(),
             },
@@ -179,8 +173,8 @@ fn parse(input: &str) -> Result<Problem> {
     let parse_problem = || {
         map(
             tuple((
-                separated_list1(tag("\n"), parse_workflow()),
-                preceded(multispace0, separated_list1(tag("\n"), parse_part())),
+                l1_newline(parse_workflow()),
+                p_mspace(l1_newline(parse_part())),
             )),
             |(workflows, parts)| Problem {
                 workflows: workflows.into_iter().map(|w| (w.name.clone(), w)).collect(),
